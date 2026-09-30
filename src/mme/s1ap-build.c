@@ -2020,6 +2020,32 @@ ogs_pkbuf_t *s1ap_build_paging(
         NB_IoT_UEIdentityIndexValue->buf[0] = nb_index >> 4;
         NB_IoT_UEIdentityIndexValue->buf[1] = (nb_index & 0x0f) << 4;
         NB_IoT_UEIdentityIndexValue->bits_unused = 4;
+
+        /* Negotiated eDRX (TS 24.008 10.5.5.32, NB-S1 mode): values 2..15
+         * are 2..1024 hyperframes, in the order of NB-IoT-Paging-eDRX-Cycle;
+         * the paging time window p is (p + 1) x 2.56 s, i.e. s(p + 1) */
+        if (mme_ue->psm.edrx_present && mme_ue->psm.edrx.e_drx_value >= 2) {
+            S1AP_NB_IoT_Paging_eDRXInformation_t *eDRX;
+
+            ie = CALLOC(1, sizeof(*ie));
+            ogs_assert(ie);
+            ASN_SEQUENCE_ADD(Paging->protocolIEs, ie);
+
+            ie->id = S1AP_ProtocolIE_ID_id_NB_IoT_Paging_eDRXInformation;
+            ie->criticality = S1AP_Criticality_ignore;
+            ie->value.present =
+                S1AP_PagingIEs__value_PR_NB_IoT_Paging_eDRXInformation;
+            eDRX = CALLOC(1, sizeof(*eDRX));
+            ogs_assert(eDRX);
+            ie->value.choice.NB_IoT_Paging_eDRXInformation = eDRX;
+            eDRX->nB_IoT_paging_eDRX_Cycle =
+                mme_ue->psm.edrx.e_drx_value - 2;
+            eDRX->nB_IoT_pagingTimeWindow =
+                CALLOC(1, sizeof(*eDRX->nB_IoT_pagingTimeWindow));
+            ogs_assert(eDRX->nB_IoT_pagingTimeWindow);
+            *eDRX->nB_IoT_pagingTimeWindow =
+                mme_ue->psm.edrx.paging_time_window;
+        }
     }
 
     /* Set Paging Identity */
