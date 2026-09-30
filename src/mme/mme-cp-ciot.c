@@ -175,10 +175,16 @@ uint32_t mme_edrx_cycle_ms(const mme_ue_t *mme_ue)
     /* TS 24.008 10.5.5.32, NB-S1 mode: 2..1024 hyperframes of 10.24 s */
     static const uint16_t hf[16] = {
         0, 0, 2, 4, 6, 8, 10, 12, 14, 16, 32, 64, 128, 256, 512, 1024 };
+    /* WB-S1 mode: 5.12 s .. 2621.44 s in units of 5.12 s; 14 and 15 have
+     * no Paging-eDRX-Cycle (TS 36.413 9.2.1.116), so no eDRX paging */
+    static const uint16_t wb[16] = {
+        1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 64, 128, 256, 512, 0, 0 };
 
     ogs_assert(mme_ue);
-    if (!mme_cp_ciot_ue(mme_ue) || !mme_ue->psm.edrx_present)
+    if (!mme_ue->psm.edrx_present)
         return 0;
+    if (!mme_cp_ciot_ue(mme_ue))
+        return (uint32_t)wb[mme_ue->psm.edrx.e_drx_value & 0xf] * 5120;
     return (uint32_t)hf[mme_ue->psm.edrx.e_drx_value & 0xf] * 10240;
 }
 

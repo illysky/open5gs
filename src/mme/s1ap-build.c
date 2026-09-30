@@ -2046,6 +2046,28 @@ ogs_pkbuf_t *s1ap_build_paging(
             *eDRX->nB_IoT_pagingTimeWindow =
                 mme_ue->psm.edrx.paging_time_window;
         }
+    } else if (mme_ue->psm.edrx_present &&
+            mme_ue->psm.edrx.e_drx_value <= S1AP_Paging_eDRX_Cycle_hf256) {
+        /* Negotiated eDRX (TS 24.008 10.5.5.32, WB-S1 mode): values 0..13
+         * are 5.12 s .. 2621.44 s, in the order of Paging-eDRX-Cycle
+         * (hfhalf .. hf256); the paging time window p is (p + 1) x 1.28 s,
+         * i.e. s(p + 1) */
+        S1AP_Paging_eDRXInformation_t *eDRX;
+
+        ie = CALLOC(1, sizeof(*ie));
+        ogs_assert(ie);
+        ASN_SEQUENCE_ADD(Paging->protocolIEs, ie);
+
+        ie->id = S1AP_ProtocolIE_ID_id_Paging_eDRXInformation;
+        ie->criticality = S1AP_Criticality_ignore;
+        ie->value.present = S1AP_PagingIEs__value_PR_Paging_eDRXInformation;
+        eDRX = CALLOC(1, sizeof(*eDRX));
+        ogs_assert(eDRX);
+        ie->value.choice.Paging_eDRXInformation = eDRX;
+        eDRX->paging_eDRX_Cycle = mme_ue->psm.edrx.e_drx_value;
+        eDRX->pagingTimeWindow = CALLOC(1, sizeof(*eDRX->pagingTimeWindow));
+        ogs_assert(eDRX->pagingTimeWindow);
+        *eDRX->pagingTimeWindow = mme_ue->psm.edrx.paging_time_window;
     }
 
     /* Set Paging Identity */

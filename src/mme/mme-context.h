@@ -774,6 +774,7 @@ struct mme_ue_s {
         ogs_debug("[%s] Clear Paging Info", (__mME)->imsi_bcd); \
         (__mME)->paging.type = 0; \
         (__mME)->paging.failed = false; \
+        (__mME)->paging.ddn_acked = false; \
     } while(0)
 
 #define MME_STORE_PAGING_INFO(__mME, __tYPE, __dATA) \
@@ -783,6 +784,7 @@ struct mme_ue_s {
         ogs_debug("[%s] Store Paging Info", mme_ue->imsi_bcd); \
         (__mME)->paging.type = __tYPE; \
         (__mME)->paging.data = OGS_UINT_TO_POINTER(__dATA); \
+        (__mME)->paging.ddn_acked = false; \
     } while(0)
 
 #define MME_PAGING_ONGOING(__mME) ((__mME) && ((__mME)->paging.type))
@@ -797,6 +799,7 @@ struct mme_ue_s {
         int type;
         void *data;
         bool failed;
+        bool ddn_acked;     /* eDRX: the DDN was acknowledged at paging */
     } paging;
 
     /* SGW UE context */

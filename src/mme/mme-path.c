@@ -212,7 +212,9 @@ void mme_send_after_paging(mme_ue_t *mme_ue, bool failed)
             goto cleanup;
         }
 
-        if (failed == true) {
+        if (mme_ue->paging.ddn_acked) {
+            break;
+        } else if (failed == true) {
             ogs_assert(OGS_OK ==
                 mme_gtp_send_downlink_data_notification_ack(
                     bearer, OGS_GTP2_CAUSE_UNABLE_TO_PAGE_UE));

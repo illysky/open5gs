@@ -1725,6 +1725,21 @@ void mme_s11_handle_downlink_data_notification(
         r = s1ap_send_paging(mme_ue, S1AP_CNDomain_ps);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
+        if (!mme_cp_ciot_ue(mme_ue) && mme_edrx_cycle_ms(mme_ue)) {
+            /*
+             * TS 23.401 5.3.4.3: a UE in eDRX answers the page only in its
+             * next paging time window, which may be longer away than the
+             * GTP transaction lives. Acknowledged now; the SGW keeps
+             * buffering until the service request.
+             */
+            ogs_info("[%s] Downlink data, UE in eDRX (%u ms): paging, "
+                    "acknowledged at once", mme_ue->imsi_bcd,
+                    mme_edrx_cycle_ms(mme_ue));
+            ogs_assert(OGS_OK ==
+                mme_gtp_send_downlink_data_notification_ack(
+                    bearer, OGS_GTP2_CAUSE_REQUEST_ACCEPTED));
+            mme_ue->paging.ddn_acked = true;
+        }
     } else if (ECM_CONNECTED(mme_ue)) {
         MME_CLEAR_PAGING_INFO(mme_ue);
         ogs_assert(OGS_OK ==
