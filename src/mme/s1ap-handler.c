@@ -1368,6 +1368,7 @@ void s1ap_handle_initial_context_setup_response(
         }
     }
 
+    mme_ue->psm.dl_pending = false;
     if (MME_PAGING_ONGOING(mme_ue))
         mme_send_after_paging(mme_ue, false);
 }

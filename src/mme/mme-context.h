@@ -573,6 +573,7 @@ struct mme_ue_s {
         ogs_nas_gprs_timer_3_t t3412_extended;
         ogs_nas_extended_drx_parameters_t edrx;
         ogs_time_t idle_since;      /* entered ECM-IDLE, 0 if connected */
+        bool dl_pending;            /* S1-U data buffered at the SGW in PSM */
     } psm;
 
     /* Authentication synch failure counter */

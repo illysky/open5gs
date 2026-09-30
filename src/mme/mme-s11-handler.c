@@ -28,6 +28,7 @@
 #include "mme-fd-path.h"
 #include "sgsap-path.h"
 #include "mme-path.h"
+#include "mme-cp-ciot.h"
 
 #include "mme-s11-build.h"
 #include "mme-s11-handler.h"
@@ -1706,7 +1707,19 @@ void mme_s11_handle_downlink_data_notification(
  * If the MME receives a Downlink Data Notification after step 2 and
  * before step 9, the MME shall not send S1 interface paging messages
  */
-    if (ECM_IDLE(mme_ue)) {
+    if (ECM_IDLE(mme_ue) && !mme_cp_ciot_ue(mme_ue) &&
+            !mme_psm_active_timer_running(mme_ue)) {
+        /*
+         * TS 23.401 5.3.4.3: a UE in PSM is not paged. The SGW keeps the
+         * data buffered and the next TAU sets up the user plane for it.
+         */
+        ogs_info("[%s] Downlink data, UE in power saving mode: buffered "
+                "at the SGW until the next TAU", mme_ue->imsi_bcd);
+        mme_ue->psm.dl_pending = true;
+        ogs_assert(OGS_OK ==
+            mme_gtp_send_downlink_data_notification_ack(
+                bearer, OGS_GTP2_CAUSE_REQUEST_ACCEPTED));
+    } else if (ECM_IDLE(mme_ue)) {
         MME_STORE_PAGING_INFO(mme_ue,
             MME_PAGING_TYPE_DOWNLINK_DATA_NOTIFICATION, bearer->id);
         r = s1ap_send_paging(mme_ue, S1AP_CNDomain_ps);

@@ -701,6 +701,14 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             mme_ue->tracking_area_update_accept_proc =
                 S1AP_ProcedureCode_id_downlinkNASTransport;
             if (e->s1ap_code == S1AP_ProcedureCode_id_initialUEMessage &&
+                mme_ue->psm.dl_pending) {
+                /* as if the UE had set the active flag: no release */
+                ogs_info("[%s] TAU with downlink data buffered in PSM: "
+                        "setting up the user plane", mme_ue->imsi_bcd);
+                mme_ue->nas_eps.update.active_flag = 1;
+            }
+            mme_ue->psm.dl_pending = false;
+            if (e->s1ap_code == S1AP_ProcedureCode_id_initialUEMessage &&
                 mme_ue->nas_eps.update.active_flag)
                 mme_ue->tracking_area_update_accept_proc =
                     S1AP_ProcedureCode_id_InitialContextSetup;
