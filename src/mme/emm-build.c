@@ -244,6 +244,23 @@ ogs_pkbuf_t *emm_build_attach_accept(
     eps_network_feature_support->extended_protocol_configuration_options = 1;
     if (mme_cp_ciot_ue(mme_ue))
         eps_network_feature_support->control_plane_ciot_eps_optimization = 1;
+
+    if (mme_ue->psm.t3412_extended_present) {
+        attach_accept->presencemask |=
+            OGS_NAS_EPS_ATTACH_ACCEPT_T3412_EXTENDED_VALUE_PRESENT;
+        attach_accept->t3412_extended_value = mme_ue->psm.t3412_extended;
+    }
+    if (mme_ue->psm.t3324_present) {
+        attach_accept->presencemask |=
+            OGS_NAS_EPS_ATTACH_ACCEPT_T3324_VALUE_PRESENT;
+        attach_accept->t3324_value = mme_ue->psm.t3324;
+    }
+    if (mme_ue->psm.edrx_present) {
+        attach_accept->presencemask |=
+            OGS_NAS_EPS_ATTACH_ACCEPT_EXTENDED_DRX_PARAMETERS_PRESENT;
+        attach_accept->extended_drx_parameters = mme_ue->psm.edrx;
+        attach_accept->extended_drx_parameters.length = 1;
+    }
     if (mme_self()->emergency.dnn)
         eps_network_feature_support->emergency_bearer_services_in_s1_mode = 1;
 
@@ -696,6 +713,26 @@ ogs_pkbuf_t *emm_build_tau_accept(mme_ue_t *mme_ue)
     }
     tau_accept->eps_network_feature_support.
         extended_protocol_configuration_options = 1;
+    if (mme_cp_ciot_ue(mme_ue))
+        tau_accept->eps_network_feature_support.
+            control_plane_ciot_eps_optimization = 1;
+
+    if (mme_ue->psm.t3412_extended_present) {
+        tau_accept->presencemask |=
+            OGS_NAS_EPS_TRACKING_AREA_UPDATE_ACCEPT_T3412_EXTENDED_VALUE_PRESENT;
+        tau_accept->t3412_extended_value = mme_ue->psm.t3412_extended;
+    }
+    if (mme_ue->psm.t3324_present) {
+        tau_accept->presencemask |=
+            OGS_NAS_EPS_TRACKING_AREA_UPDATE_ACCEPT_T3324_VALUE_PRESENT;
+        tau_accept->t3324_value = mme_ue->psm.t3324;
+    }
+    if (mme_ue->psm.edrx_present) {
+        tau_accept->presencemask |=
+            OGS_NAS_EPS_TRACKING_AREA_UPDATE_ACCEPT_EXTENDED_DRX_PARAMETERS_PRESENT;
+        tau_accept->extended_drx_parameters = mme_ue->psm.edrx;
+        tau_accept->extended_drx_parameters.length = 1;
+    }
 
     return nas_eps_security_encode(mme_ue, &message);
 }

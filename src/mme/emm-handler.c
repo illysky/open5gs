@@ -28,6 +28,7 @@
 #include "mme-gtp-path.h"
 
 #include "emm-handler.h"
+#include "mme-cp-ciot.h"
 
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __emm_log_domain
@@ -187,6 +188,17 @@ int emm_handle_attach_request(enb_ue_t *enb_ue, mme_ue_t *mme_ue,
     memcpy(&mme_ue->ue_network_capability,
             &attach_request->ue_network_capability,
             sizeof(attach_request->ue_network_capability));
+
+    mme_psm_store_request(mme_ue,
+        (attach_request->presencemask &
+            OGS_NAS_EPS_ATTACH_REQUEST_T3324_VALUE_PRESENT) ?
+                &attach_request->t3324_value : NULL,
+        (attach_request->presencemask &
+            OGS_NAS_EPS_ATTACH_REQUEST_T3412_EXTENDED_VALUE_PRESENT) ?
+                &attach_request->t3412_extended_value : NULL,
+        (attach_request->presencemask &
+            OGS_NAS_EPS_ATTACH_REQUEST_EXTENDED_DRX_PARAMETERS_PRESENT) ?
+                &attach_request->extended_drx_parameters : NULL);
 
     if (attach_request->presencemask &
             OGS_NAS_EPS_ATTACH_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {
@@ -782,6 +794,17 @@ int emm_handle_tau_request(
                 &tau_request->ue_network_capability,
                 sizeof(tau_request->ue_network_capability));
     }
+
+    mme_psm_store_request(mme_ue,
+        (tau_request->presencemask &
+            OGS_NAS_EPS_TRACKING_AREA_UPDATE_REQUEST_T3324_VALUE_PRESENT) ?
+                &tau_request->t3324_value : NULL,
+        (tau_request->presencemask &
+            OGS_NAS_EPS_TRACKING_AREA_UPDATE_REQUEST_T3412_EXTENDED_VALUE_PRESENT) ?
+                &tau_request->t3412_extended_value : NULL,
+        (tau_request->presencemask &
+            OGS_NAS_EPS_TRACKING_AREA_UPDATE_REQUEST_EXTENDED_DRX_PARAMETERS_PRESENT) ?
+                &tau_request->extended_drx_parameters : NULL);
 
     if (tau_request->presencemask &
             OGS_NAS_EPS_TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {

@@ -33,6 +33,7 @@
 #include "mme-gtp-path.h"
 #include "mme-path.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __emm_log_domain
@@ -263,7 +264,7 @@ void emm_state_registered(ogs_fsm_t *s, mme_event_t *e)
          * timer T3346.
          */
             ogs_timer_start(mme_ue->t_implicit_detach.timer,
-                ogs_time_from_sec(mme_self()->time.t3412.value + 240));
+                ogs_time_from_sec(mme_psm_periodic_tau_sec(mme_ue) + 240));
             break;
 
         case MME_TIMER_IMPLICIT_DETACH:

@@ -27,6 +27,7 @@
 #include "s1ap-handler.h"
 #include "mme-sm.h"
 #include "mme-gtp-path.h"
+#include "mme-cp-ciot.h"
 
 #define MAX_CELL_PER_ENB            8
 
@@ -3772,6 +3773,8 @@ void mme_ue_remove(mme_ue_t *mme_ue)
     ogs_list_remove(&self.mme_ue_list, mme_ue);
 
     mme_ue_fsm_fini(mme_ue);
+
+    mme_cp_ciot_drop_queue(mme_ue);
 
     ogs_hash_set(self.mme_s11_teid_hash,
             &mme_ue->mme_s11_teid, sizeof(mme_ue->mme_s11_teid), NULL);

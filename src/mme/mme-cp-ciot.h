@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 #define MME_CP_CIOT_ESM_DATA_TRANSPORT 235
+#define MME_CP_CIOT_CONTROL_PLANE_SERVICE_REQUEST 77
 
 int mme_cp_ciot_open(void);
 void mme_cp_ciot_close(void);
@@ -28,6 +29,39 @@ void mme_cp_ciot_set_downlink_path(mme_bearer_t *bearer);
 
 /* Takes ownership of esmbuf, a plain ESM DATA TRANSPORT message */
 int mme_cp_ciot_handle_uplink(mme_ue_t *mme_ue, ogs_pkbuf_t *esmbuf);
+
+/*
+ * CONTROL PLANE SERVICE REQUEST (TS 24.301 5.6.1.2.2, 8.2.33) of a UE in
+ * EMM-IDLE, integrity checked: nasbuf starts at the plain EMM header.
+ * Takes ownership of nasbuf.
+ */
+int mme_cp_ciot_handle_service_request(
+        enb_ue_t *enb_ue, mme_ue_t *mme_ue, ogs_pkbuf_t *nasbuf);
+
+/*
+ * Downlink user data that arrives while the UE is in ECM-IDLE is held in the
+ * MME (the SGW keeps sending to the MME's GTP-U socket, see
+ * mme_send_release_access_bearer_or_ue_context_release) and the UE is paged,
+ * unless it is in power saving mode, in which case the data waits for the UE's
+ * next contact.
+ */
+bool mme_cp_ciot_has_queue(const mme_ue_t *mme_ue);
+void mme_cp_ciot_flush_queue(mme_ue_t *mme_ue);
+void mme_cp_ciot_drop_queue(mme_ue_t *mme_ue);
+
+/*
+ * What the UE asked for in ATTACH / TRACKING AREA UPDATE REQUEST (NULL: not
+ * included, i.e. not requested); the accept grants exactly that.
+ */
+void mme_psm_store_request(mme_ue_t *mme_ue,
+        const ogs_nas_gprs_timer_2_t *t3324,
+        const ogs_nas_gprs_timer_3_t *t3412_extended,
+        const ogs_nas_extended_drx_parameters_t *edrx);
+
+/* PSM (TS 24.301 5.3.11): T3324 still running since the UE went idle */
+bool mme_psm_active_timer_running(const mme_ue_t *mme_ue);
+/* T3412 extended if negotiated, otherwise T3412 */
+uint32_t mme_psm_periodic_tau_sec(const mme_ue_t *mme_ue);
 
 #ifdef __cplusplus
 }

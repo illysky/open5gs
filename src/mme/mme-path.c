@@ -24,6 +24,7 @@
 #include "mme-path.h"
 #include "mme-fd-path.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 void mme_send_delete_session_or_detach(enb_ue_t *enb_ue, mme_ue_t *mme_ue)
 {
@@ -164,7 +165,21 @@ void mme_send_release_access_bearer_or_ue_context_release(enb_ue_t *enb_ue)
     ogs_assert(enb_ue);
 
     mme_ue = mme_ue_find_by_id(enb_ue->mme_ue_id);
-    if (mme_ue) {
+    if (mme_ue && mme_cp_ciot_ue(mme_ue)) {
+        /*
+         * The SGW's downlink F-TEID of a CP-CIoT bearer is the MME itself,
+         * which holds the data of an idle UE and pages it: nothing to
+         * release towards the SGW.
+         */
+        ogs_debug("[%s] CP-CIoT: S1 release, downlink path kept",
+                mme_ue->imsi_bcd);
+        ogs_assert(enb_ue->relcause.group);
+        r = s1ap_send_ue_context_release_command(enb_ue,
+                enb_ue->relcause.group, enb_ue->relcause.cause,
+                S1AP_UE_CTX_REL_S1_REMOVE_AND_UNLINK, 0);
+        ogs_expect(r == OGS_OK);
+        ogs_assert(r != OGS_ERROR);
+    } else if (mme_ue) {
         ogs_debug("[%s] Release access bearer request", mme_ue->imsi_bcd);
         ogs_assert(OGS_OK ==
             mme_gtp_send_release_access_bearers_request(
@@ -436,6 +451,20 @@ void mme_send_tau_accept_and_check_release(enb_ue_t *enb_ue, mme_ue_t *mme_ue)
             mme_ue->tracking_area_update_accept_proc);
     ogs_expect(r == OGS_OK);
     ogs_assert(r != OGS_ERROR);
+
+    /*
+     * CP-CIoT: data held while the UE was idle (in PSM, typically) goes out
+     * now, and the eNB releases the connection once it has been delivered.
+     * With the active flag the UE keeps the connection for its own data.
+     */
+    if (mme_cp_ciot_ue(mme_ue)) {
+        mme_ue->psm.idle_since = 0;
+        if (mme_cp_ciot_has_queue(mme_ue) ||
+                mme_ue->nas_eps.update.active_flag) {
+            mme_cp_ciot_flush_queue(mme_ue);
+            return;
+        }
+    }
 
     /*
      * TS 24.301 Ch5.5.3.3

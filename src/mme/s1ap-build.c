@@ -21,6 +21,7 @@
 
 #include "mme-sm.h"
 #include "s1ap-build.h"
+#include "mme-cp-ciot.h"
 #include "S1AP_E-RABToBeSwitchedULList.h"
 #include "S1AP_E-RABSubjecttoDataForwardingList.h"
 #include "S1AP_E-RABToBeSetupListHOReq.h"
@@ -1995,6 +1996,31 @@ ogs_pkbuf_t *s1ap_build_paging(
     UEIdentityIndexValue->buf[0] = index_value >> 2;
     UEIdentityIndexValue->buf[1] = (index_value & 0x3f) << 6;
     UEIdentityIndexValue->bits_unused = 6;
+
+    /* NB-IoT paging occasions use UE_ID = IMSI mod 4096 (TS 36.304 7.1) */
+    if (mme_cp_ciot_ue(mme_ue)) {
+        S1AP_NB_IoT_UEIdentityIndexValue_t *NB_IoT_UEIdentityIndexValue;
+        uint16_t nb_index = ue_imsi_value % 4096;
+
+        ie = CALLOC(1, sizeof(*ie));
+        ogs_assert(ie);
+        ASN_SEQUENCE_ADD(Paging->protocolIEs, ie);
+
+        ie->id = S1AP_ProtocolIE_ID_id_NB_IoT_UEIdentityIndexValue;
+        ie->criticality = S1AP_Criticality_ignore;
+        ie->value.present = S1AP_PagingIEs__value_PR_NB_IoT_UEIdentityIndexValue;
+        ie->value.choice.NB_IoT_UEIdentityIndexValue =
+            CALLOC(1, sizeof(*NB_IoT_UEIdentityIndexValue));
+        NB_IoT_UEIdentityIndexValue =
+            ie->value.choice.NB_IoT_UEIdentityIndexValue;
+        ogs_assert(NB_IoT_UEIdentityIndexValue);
+        NB_IoT_UEIdentityIndexValue->size = 2;
+        NB_IoT_UEIdentityIndexValue->buf =
+            CALLOC(NB_IoT_UEIdentityIndexValue->size, sizeof(uint8_t));
+        NB_IoT_UEIdentityIndexValue->buf[0] = nb_index >> 4;
+        NB_IoT_UEIdentityIndexValue->buf[1] = (nb_index & 0x0f) << 4;
+        NB_IoT_UEIdentityIndexValue->bits_unused = 4;
+    }
 
     /* Set Paging Identity */
     UEPagingID->present = S1AP_UEPagingID_PR_s_TMSI;

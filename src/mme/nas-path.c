@@ -880,6 +880,10 @@ int nas_eps_send_tau_accept(
     ogs_timer_start(mme_ue->t3450.timer,
             mme_timer_cfg(MME_TIMER_T3450)->duration);
 
+    /* No E-RABs or AS security for a CP-CIoT UE, whatever its active flag */
+    if (mme_cp_ciot_ue(mme_ue))
+        procedureCode = S1AP_ProcedureCode_id_downlinkNASTransport;
+
     if (procedureCode == S1AP_ProcedureCode_id_InitialContextSetup) {
         ogs_pkbuf_t *s1apbuf = NULL;
         s1apbuf = s1ap_build_initial_context_setup_request(mme_ue, emmbuf);

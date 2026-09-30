@@ -33,6 +33,7 @@
 
 #include "mme-path.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 static bool maximum_number_of_enbs_is_reached(void)
 {
@@ -2217,8 +2218,9 @@ void s1ap_handle_ue_context_release_action(enb_ue_t *enb_ue)
          * detach timer such that the sum of the timer values is greater than
          * timer T3346.
          */
+            mme_ue->psm.idle_since = ogs_time_now();
             ogs_timer_start(mme_ue->t_mobile_reachable.timer,
-                ogs_time_from_sec(mme_self()->time.t3412.value + 240));
+                ogs_time_from_sec(mme_psm_periodic_tau_sec(mme_ue) + 240));
         }
     }
 

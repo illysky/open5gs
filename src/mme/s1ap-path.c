@@ -200,6 +200,10 @@ int s1ap_send_to_nas(enb_ue_t *enb_ue,
         security_header_type.service_request = 1;
         break;
     case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED:
+    /* Control Plane Service Request (TS 24.301 9.3.1): only the ESM message
+     * container is ciphered, which mme_cp_ciot_handle_service_request()
+     * deciphers */
+    case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_PARTICALLY_CIPHTERD:
         security_header_type.integrity_protected = 1;
         break;
     case OGS_NAS_SECURITY_HEADER_INTEGRITY_PROTECTED_AND_CIPHERED:
@@ -279,6 +283,9 @@ int s1ap_send_to_nas(enb_ue_t *enb_ue,
 
             return OGS_ERROR;
         }
+
+        if (h->message_type == MME_CP_CIOT_CONTROL_PLANE_SERVICE_REQUEST)
+            return mme_cp_ciot_handle_service_request(enb_ue, mme_ue, nasbuf);
 
         if (h->security_header_type !=
                 OGS_NAS_SECURITY_HEADER_FOR_SERVICE_REQUEST_MESSAGE &&

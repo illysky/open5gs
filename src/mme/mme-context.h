@@ -554,6 +554,27 @@ struct mme_ue_s {
     int             security_context_available;
     int             mac_failed;
 
+    /* CP-CIoT: release the NAS connection after the next downlink data */
+    bool            cp_ciot_release_after_dl;
+    /* CP-CIoT: downlink user data held while the UE is in ECM-IDLE */
+#define MME_CP_CIOT_MAX_DL_QUEUE 16
+    struct {
+        ogs_pkbuf_t     *pkbuf;
+        ogs_pool_id_t   bearer_id;
+    } cp_ciot_dl[MME_CP_CIOT_MAX_DL_QUEUE];
+    int             cp_ciot_dl_count;
+
+    /* PSM and eDRX as requested by the UE (TS 24.301 5.3.11, 5.3.12) */
+    struct {
+        bool t3324_present;
+        bool t3412_extended_present;
+        bool edrx_present;
+        ogs_nas_gprs_timer_2_t t3324;
+        ogs_nas_gprs_timer_3_t t3412_extended;
+        ogs_nas_extended_drx_parameters_t edrx;
+        ogs_time_t idle_since;      /* entered ECM-IDLE, 0 if connected */
+    } psm;
+
     /* Authentication synch failure counter */
     uint8_t auth_synch_fail_count;
 
