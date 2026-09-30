@@ -26,6 +26,7 @@
 #include "s1ap-path.h"
 #include "mme-s11-build.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 static void _gtpv1v2_c_recv_cb(short when, ogs_socket_t fd, void *data)
 {
@@ -252,11 +253,12 @@ int mme_gtp_open(void)
         ogs_assert(rv == OGS_OK);
     }
 
-    return OGS_OK;
+    return mme_cp_ciot_open();
 }
 
 void mme_gtp_close(void)
 {
+    mme_cp_ciot_close();
     ogs_socknode_remove_all(&ogs_gtp_self()->gtpc_list);
     ogs_socknode_remove_all(&ogs_gtp_self()->gtpc_list6);
 }

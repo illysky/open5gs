@@ -73,6 +73,7 @@ libmme_sources = files('''
     mme-gn-build.c
     mme-gn-handler.c
     mme-gtp-path.c
+    mme-cp-ciot.c
     mme-s11-build.c
     mme-s11-handler.c
     mme-sm.c

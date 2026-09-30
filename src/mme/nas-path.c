@@ -25,6 +25,7 @@
 #include "mme-event.h"
 #include "mme-timer.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 int nas_eps_send_to_enb(mme_ue_t *mme_ue, ogs_pkbuf_t *pkbuf)
 {
@@ -174,6 +175,18 @@ int nas_eps_send_attach_accept(mme_ue_t *mme_ue)
      * or the UE radio capability ID, if any.
      */
     OGS_ASN_CLEAR_DATA(&mme_ue->ueRadioCapability);
+
+    /*
+     * Control Plane CIoT only: no E-RABs and no AS security, so no
+     * Initial Context Setup. The Modify Bearer Request that follows the
+     * default bearer accept points the SGW at the MME's own GTP-U socket.
+     */
+    if (mme_cp_ciot_ue(mme_ue)) {
+        mme_cp_ciot_set_downlink_path(mme_default_bearer_in_sess(sess));
+        rv = nas_eps_send_to_downlink_nas_transport(enb_ue, emmbuf);
+        ogs_expect(rv == OGS_OK);
+        return rv;
+    }
 
     s1apbuf = s1ap_build_initial_context_setup_request(mme_ue, emmbuf);
     if (!s1apbuf) {

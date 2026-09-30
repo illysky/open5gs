@@ -20,6 +20,7 @@
 #include "nas-security.h"
 #include "emm-build.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __emm_log_domain
@@ -241,6 +242,8 @@ ogs_pkbuf_t *emm_build_attach_accept(
     eps_network_feature_support->ims_voice_over_ps_session_in_s1_mode = 1;
     }
     eps_network_feature_support->extended_protocol_configuration_options = 1;
+    if (mme_cp_ciot_ue(mme_ue))
+        eps_network_feature_support->control_plane_ciot_eps_optimization = 1;
     if (mme_self()->emergency.dnn)
         eps_network_feature_support->emergency_bearer_services_in_s1_mode = 1;
 

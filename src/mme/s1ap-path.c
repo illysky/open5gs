@@ -24,6 +24,7 @@
 
 #include "nas-security.h"
 #include "nas-path.h"
+#include "mme-cp-ciot.h"
 
 #include "s1ap-build.h"
 #include "s1ap-path.h"
@@ -321,6 +322,9 @@ int s1ap_send_to_nas(enb_ue_t *enb_ue,
             ogs_pkbuf_free(nasbuf);
             return OGS_ERROR;
         }
+        if (nasbuf->len >= 3 &&
+            nasbuf->data[2] == MME_CP_CIOT_ESM_DATA_TRANSPORT)
+            return mme_cp_ciot_handle_uplink(mme_ue, nasbuf);
         rv = s1ap_send_to_esm(
                 mme_ue, nasbuf, security_header_type.type,
                 OGS_GTP_CREATE_IN_UPLINK_NAS_TRANSPORT);

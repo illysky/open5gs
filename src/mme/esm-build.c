@@ -20,6 +20,7 @@
 #include "nas-security.h"
 #include "esm-build.h"
 #include "mme-sm.h"
+#include "mme-cp-ciot.h"
 
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __esm_log_domain
@@ -172,6 +173,13 @@ ogs_pkbuf_t *esm_build_activate_default_bearer_context_request(
         OGS_NAS_EPS_ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST;
 
     memcpy(&bearer->qos, &session->qos, sizeof(ogs_qos_t));
+
+    if (mme_cp_ciot_ue(mme_ue)) {
+        activate_default_eps_bearer_context_request->presencemask |=
+            OGS_NAS_EPS_ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_CONTROL_PLANE_ONLY_INDICATION_PRESENT;
+        activate_default_eps_bearer_context_request
+            ->control_plane_only_indication.ciot_eps_optimization = 1;
+    }
 
     eps_qos_build(eps_qos, bearer->qos.index,
             bearer->qos.mbr.downlink, bearer->qos.mbr.uplink,
