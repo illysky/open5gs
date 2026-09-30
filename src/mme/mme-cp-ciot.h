@@ -63,6 +63,13 @@ bool mme_psm_active_timer_running(const mme_ue_t *mme_ue);
 /* T3412 extended if negotiated, otherwise T3412 */
 uint32_t mme_psm_periodic_tau_sec(const mme_ue_t *mme_ue);
 
+/* Paging a UE in eDRX: one page per eDRX cycle (each reaches one paging time
+ * window), MME_CP_CIOT_EDRX_PAGING_CYCLES in all; other UEs keep T3413 */
+#define MME_CP_CIOT_EDRX_PAGING_CYCLES 4
+uint32_t mme_edrx_cycle_ms(const mme_ue_t *mme_ue);
+ogs_time_t mme_paging_interval(const mme_ue_t *mme_ue);
+int mme_paging_max_count(const mme_ue_t *mme_ue);
+
 #ifdef __cplusplus
 }
 #endif

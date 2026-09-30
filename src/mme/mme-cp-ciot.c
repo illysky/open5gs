@@ -3,6 +3,7 @@
  * See mme-cp-ciot.h.
  */
 
+#include "mme-timer.h"
 #include "mme-cp-ciot.h"
 #include "nas-security.h"
 #include "nas-path.h"
@@ -167,6 +168,33 @@ uint32_t mme_psm_periodic_tau_sec(const mme_ue_t *mme_ue)
         return gprs_timer_sec(
                 *(const uint8_t *)&mme_ue->psm.t3412_extended.t, true);
     return (uint32_t)mme_self()->time.t3412.value;
+}
+
+uint32_t mme_edrx_cycle_ms(const mme_ue_t *mme_ue)
+{
+    /* TS 24.008 10.5.5.32, NB-S1 mode: 2..1024 hyperframes of 10.24 s */
+    static const uint16_t hf[16] = {
+        0, 0, 2, 4, 6, 8, 10, 12, 14, 16, 32, 64, 128, 256, 512, 1024 };
+
+    ogs_assert(mme_ue);
+    if (!mme_cp_ciot_ue(mme_ue) || !mme_ue->psm.edrx_present)
+        return 0;
+    return (uint32_t)hf[mme_ue->psm.edrx.e_drx_value & 0xf] * 10240;
+}
+
+ogs_time_t mme_paging_interval(const mme_ue_t *mme_ue)
+{
+    uint32_t cycle = mme_edrx_cycle_ms(mme_ue);
+    if (cycle)
+        return ogs_time_from_msec(cycle);
+    return mme_timer_cfg(MME_TIMER_T3413)->duration;
+}
+
+int mme_paging_max_count(const mme_ue_t *mme_ue)
+{
+    if (mme_edrx_cycle_ms(mme_ue))
+        return MME_CP_CIOT_EDRX_PAGING_CYCLES - 1;
+    return mme_timer_cfg(MME_TIMER_T3413)->max_count;
 }
 
 static void hold_downlink(mme_ue_t *mme_ue, mme_bearer_t *bearer,

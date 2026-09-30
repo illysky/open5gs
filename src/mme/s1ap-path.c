@@ -578,9 +578,8 @@ int s1ap_send_paging(mme_ue_t *mme_ue, S1AP_CNDomain_t cn_domain)
         }
     }
 
-    /* Start T3413 */
-    ogs_timer_start(mme_ue->t3413.timer,
-            mme_timer_cfg(MME_TIMER_T3413)->duration);
+    /* Start T3413; a UE in eDRX is paged again once per eDRX cycle */
+    ogs_timer_start(mme_ue->t3413.timer, mme_paging_interval(mme_ue));
 
     return OGS_OK;
 }

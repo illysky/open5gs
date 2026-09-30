@@ -158,7 +158,7 @@ void emm_state_registered(ogs_fsm_t *s, mme_event_t *e)
         switch (e->timer_id) {
         case MME_TIMER_T3413:
             if (mme_ue->t3413.retry_count >=
-                    mme_timer_cfg(MME_TIMER_T3413)->max_count) {
+                    mme_paging_max_count(mme_ue)) {
                 /* Paging failed */
                 ogs_warn("Paging to IMSI[%s] failed. Stop paging",
                         mme_ue->imsi_bcd);
